@@ -7,6 +7,7 @@
 
 float grey = 0.0f;
 
+#ifdef OPENGL_3_APP
 const char* vertex_shader_code =
 "#version 330 core\n"
 "layout(location = 0) in vec3 aPos;\n"
@@ -19,11 +20,24 @@ const char* fragment_shader_code = "#version 330 core\n"
 "void main() {\n"
 "    FragColor = vec4(1.0, 0.5, 0.2, 1.0);\n"
 "}\0";
+#else
+const char* vertex_shader_code =
+"#version 110\n"
+"attribute vec3 aPos;\n"
+"void main() {\n"
+"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+
+const char* fragment_shader_code = "#version 110\n"
+"void main() {\n"
+"    gl_FragColor = vec4(1.0, 0.5, 0.2, 1.0);\n"
+"}\0";
+#endif
 
 int w = 1280, h = 720;
 
 GLuint program;
-GLuint vao;
+GLuint vao, vbo;
 
 int createShader(const char* code, int type) {
     int shader;
@@ -66,13 +80,14 @@ void initialize() {
         0.5f, -0.5f, 0.0f,
         0.0f, 0.5f, 0.0f
     };
-
+#ifdef OPENGL_3_APP
     glGenVertexArrays(1, &vao);
+#endif
 
-    GLuint vbo;
     glGenBuffers(1, &vbo);
-
+#ifdef OPENGL_3_APP
     glBindVertexArray(vao);
+#endif
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), vertices, GL_STATIC_DRAW);
 
@@ -81,7 +96,9 @@ void initialize() {
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+#ifdef OPENGL_3_APP
     glBindVertexArray(0);
+#endif
 }
 
 void render(float deltaTime) {
@@ -89,7 +106,12 @@ void render(float deltaTime) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(program);
+
+#ifdef OPENGL_3_APP
     glBindVertexArray(vao);
+#else
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+#endif
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     grey += deltaTime/5.f;
@@ -98,18 +120,29 @@ void render(float deltaTime) {
     }
 }
 
+void glfwError(int i, const char* des) {
+    printf("%s\n", des);
+}
 
 void run_opengl_app() {
     const char* name = "super opengl example";
+    glfwSetErrorCallback(&glfwError);
     if(!glfwInit())
     {
         printf("failed to initialize GLFW");
         return;
     }
 
+#ifdef OPENGL_3_APP
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#else
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
+    
+
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     GLFWwindow* window = glfwCreateWindow(w, h, name, NULL, NULL);
@@ -120,14 +153,18 @@ void run_opengl_app() {
     }
     glfwMakeContextCurrent(window);
 
-    int version = gladLoadGL(glfwGetProcAddress);
-    if(version == 0) {
+    if(!gladLoadGL(glfwGetProcAddress)) {
         printf("error loading opengl\n");
         glfwTerminate();
         return;
     }
 
     float lastTime = (float)glfwGetTime();
+
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    const GLubyte* device = glGetString(GL_RENDERER);
+    const GLubyte* version = glGetString(GL_VERSION);
+    printf("OpenGL Vendor: %s\nOpenGL Device: %s\nOpenGL Version: %s\n", vendor, device, version);
 
     initialize();
 

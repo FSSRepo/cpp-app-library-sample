@@ -8,7 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <exception>
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(OGL_APP)
 #include "vkapp.h"
 #else
 #include "oglapp.h"
@@ -20,7 +20,7 @@ void super_func(float* arr, int c) {
         printf("Item %d: %.3f\n", i, arr[i]);
     }
     printf("launching graphic app\n");
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(OGL_APP)
 	run_vulkan_app();
 #else
     run_opengl_app();
