@@ -6,14 +6,10 @@ if(WIN32)
     find_package(Vulkan REQUIRED)
     set(VK_FILES vkapp.cpp)
 else()
-    
-endif()
-
-add_compile_definitions(OGL_APP)
-
-find_package(OpenGL REQUIRED)
+    find_package(OpenGL REQUIRED)
     set(OGL_FILES oglapp.cpp glad/src/gl.c glad/src/egl.c)
     set(OGL_LIBS OpenGL::GL)
+endif()
 
 include_directories(${Vulkan_INCLUDE_DIRS} glad/include)
 
