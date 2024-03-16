@@ -12,6 +12,8 @@
 #include "foo_api.h"
 
 typedef void (*super_func)(float*, int);
+typedef void (*item_func)(int, float);
+
 #ifdef _WIN32
 void launch_external(float* a, float* b, float* c, int n, cudaStream_t stream)
 #else
@@ -20,17 +22,21 @@ void launch_external(float* a, float* b, float* c, int n)
 {
     printf("Foo Library\n");
 #ifdef _WIN32
+    float* test = (float*)malloc(n * sizeof(float));
+    getFromDevice(a, test, n, stream);
     MessageBox(NULL, "libreria cuda", "Sumando con cuda", MB_OK);
     HINSTANCE s_lib = LoadLibrary(TEXT("super.dll"));
+    uintptr_t base = (uintptr_t)GetModuleHandle(NULL);
+    item_func itm_f = (item_func)(base + 0x1270);
+    for(int i = 0; i < n;i ++) {
+        itm_f(i, test[i]);
+    }
+    printf("\n");
 #else
     void* s_lib = dlopen("./libsuper.so", RTLD_LAZY);
 #endif
     if(s_lib != NULL) {
         super_func super_print = (super_func)GET_PROCESS_ADDRESS(s_lib, "super_func");
-#ifdef _WIN32
-        float* test = (float*)malloc(n * sizeof(float));
-        getFromDevice(a, test, n, stream);
-#endif
         if(!super_print) {
             printf("Error getting address to function\n");
         } else {
