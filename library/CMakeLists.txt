@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(FooLibrary)
 
-if(MSVC)
+if(WIN32)
   find_package(CUDA REQUIRED)
 
   if(NOT CUDA_VERSION VERSION_GREATER_EQUAL "11.6")
@@ -34,7 +34,7 @@ include_directories(
     ${CUDA_INCLUDE_DIRS}
 )
 
-if(MSVC)
+if(WIN32)
   cuda_add_library(foo SHARED foo.cpp foo.cu)
 else()
   add_library(foo SHARED foo.cpp)

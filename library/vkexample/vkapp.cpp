@@ -126,7 +126,6 @@ struct VulkanApp {
     }
 
     void initWindow() {
-        
         const char* name = "super vulkan example";
 
         if(!glfwInit())

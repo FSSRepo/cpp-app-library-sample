@@ -8,13 +8,21 @@
 #include <fstream>
 #include <vector>
 #include <exception>
+#if defined(_WIN32)
 #include "vkapp.h"
+#else
+#include "oglapp.h"
+#endif
 
 void super_func(float* arr, int c) {
     printf("Super Library:\n");
     for(int i = 0; i < c; i++) {
         printf("Item %d: %.3f\n", i, arr[i]);
     }
-    printf("launching vulkan app\n");
+    printf("launching graphic app\n");
+#if defined(_WIN32)
 	run_vulkan_app();
+#else
+    run_opengl_app();
+#endif
 }

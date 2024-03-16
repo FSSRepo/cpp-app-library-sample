@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(TestApp)
 
-if (MSVC)
+if (WIN32)
   find_package(CUDAToolkit REQUIRED)
   enable_language(CUDA)
   set(CUDA_FLAGS -use_fast_math)
@@ -16,7 +16,7 @@ if (MSVC)
   add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_FLAGS}>")
 endif()
 
-if(MSVC)
+if(WIN32)
   link_directories(../library/build/bin/Release)
 else()
   link_directories(../library/build/bin)
@@ -31,7 +31,7 @@ add_executable(test-app main.cpp ${CUDA_FILES})
 
 target_link_libraries(test-app PUBLIC ${CUDA_LIBRARIES} foo)
 
-if (MSVC)
+if (WIN32)
   add_custom_command(TARGET test-app POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../library/build/bin/Release/foo.dll $<TARGET_FILE_DIR:test-app>)
 else()
   add_custom_command(TARGET test-app POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../library/build/bin/libfoo.so $<TARGET_FILE_DIR:test-app>)
