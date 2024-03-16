@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-find_package(GLFW3 REQUIRED)
+find_package(glfw3 REQUIRED)
 
 if(WIN32)
     find_package(Vulkan REQUIRED)

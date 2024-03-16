@@ -23,16 +23,22 @@ void launch_external(float* a, float* b, float* c, int n)
     MessageBox(NULL, "libreria cuda", "Sumando con cuda", MB_OK);
     HINSTANCE s_lib = LoadLibrary(TEXT("super.dll"));
 #else
-    void s_lib = dlopen("./libsuper.so", RTLD_LAZY);
+    void* s_lib = dlopen("./libsuper.so", RTLD_LAZY);
 #endif
     if(s_lib != NULL) {
         super_func super_print = (super_func)GET_PROCESS_ADDRESS(s_lib, "super_func");
+#ifdef _WIN32
         float* test = (float*)malloc(n * sizeof(float));
         getFromDevice(a, test, n, stream);
+#endif
         if(!super_print) {
             printf("Error getting address to function\n");
         } else {
+#ifdef _WIN32
             super_print(test, n);
+#else
+            super_print(a, n);
+#endif
         }
         FREE_LIBRARY(s_lib);
     } else {
