@@ -1,5 +1,5 @@
 #include <cuda_runtime.h>
-#include "foo_api.h"
+#include "foo/foo_api.h"
 
 void run_cuda(float* a, float* b, float* c, int n) {
     float *d_a, *d_b, *d_c;

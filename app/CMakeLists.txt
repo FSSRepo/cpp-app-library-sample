@@ -1,38 +1,27 @@
-cmake_minimum_required(VERSION 3.18)
-
-project(TestApp)
-
-if (WIN32)
-  find_package(CUDAToolkit REQUIRED)
-  enable_language(CUDA)
-  set(CUDA_FLAGS -use_fast_math)
-  set(CUDA_FILES main.cu)
-  set(CUDA_LIBRARIES CUDA::cudart_static)
-
-  if(CUDA_VERSION VERSION_GREATER "11.8")
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode;arch=compute_90,code=sm_90)
-  endif()
-
-  add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_FLAGS}>")
-endif()
+include(runtime_deps)
 
 if(WIN32)
-  link_directories(../library/build/bin/Release)
-else()
-  link_directories(../library/build/bin)
+    find_package(CUDAToolkit REQUIRED)
+    enable_language(CUDA)
+    set(CUDA_FILES src/main.cu)
+    set(CUDA_LIBS CUDA::cudart_static)
+    set(CUDA_FLAGS -use_fast_math)
+
+    if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER "11.8")
+        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode;arch=compute_90,code=sm_90)
+    endif()
+
+    add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_FLAGS}>")
 endif()
 
-include_directories(
-    ${CUDA_INCLUDE_DIRS}
-    ../library
+add_executable(test-app src/main.cpp ${CUDA_FILES})
+
+target_include_directories(test-app PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-add_executable(test-app main.cpp ${CUDA_FILES})
+target_link_libraries(test-app PRIVATE Foo::foo Graphics::super ${CUDA_LIBS})
 
-target_link_libraries(test-app PUBLIC ${CUDA_LIBRARIES} foo)
-
-if (WIN32)
-  add_custom_command(TARGET test-app POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../library/build/bin/Release/foo.dll $<TARGET_FILE_DIR:test-app>)
-else()
-  add_custom_command(TARGET test-app POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../library/build/bin/libfoo.so $<TARGET_FILE_DIR:test-app>)
+if(WIN32)
+    copy_runtime_deps(test-app)
 endif()
